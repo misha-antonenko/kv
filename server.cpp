@@ -192,7 +192,6 @@ int main(int argc, const char** argv)
      * handler function
      */
 
-    
     TStorage storage("table.bin");
     storage.load();
 

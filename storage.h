@@ -11,7 +11,7 @@ class TStorage {
     std::fstream index_file;
     
 public:
-    TStorage(std::string index_file_name);
+    TStorage(const std::string& index_file_name);
     
     std::optional<uint64_t> get(const std::string& key);
     void set(const std::string& key, uint64_t value);

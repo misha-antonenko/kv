@@ -2,6 +2,7 @@
 #include "log.h"
 #include "protocol.h"
 #include "rpc.h"
+#include "storage.h"
 
 #include <array>
 #include <cstdio>
@@ -191,8 +192,9 @@ int main(int argc, const char** argv)
      * handler function
      */
 
-    // TODO on-disk storage
-    std::unordered_map<std::string, uint64_t> storage;
+    
+    TStorage storage("table.bin");
+    storage.load();
 
     auto handle_get = [&] (const std::string& request) {
         NProto::TGetRequest get_request;
@@ -206,9 +208,9 @@ int main(int argc, const char** argv)
 
         NProto::TGetResponse get_response;
         get_response.set_request_id(get_request.request_id());
-        auto it = storage.find(get_request.key());
-        if (it != storage.end()) {
-            get_response.set_offset(it->second);
+        std::optional<uint64_t> v = storage.get(get_request.key());
+        if (v) {
+            get_response.set_offset(*v);
         }
 
         std::stringstream response;
@@ -228,7 +230,7 @@ int main(int argc, const char** argv)
 
         LOG_DEBUG_S("put_request: " << put_request.ShortDebugString());
 
-        storage[put_request.key()] = put_request.offset();
+        storage.set(put_request.key(), put_request.offset());
 
         NProto::TPutResponse put_response;
         put_response.set_request_id(put_request.request_id());
@@ -320,6 +322,8 @@ int main(int argc, const char** argv)
     LOG_INFO("exiting");
 
     close(socketfd);
+    
+    storage.dump();
 
     return 0;
 }

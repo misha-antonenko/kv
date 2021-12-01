@@ -1,0 +1,7 @@
+bin/*
+protobuf-3.18.1
+client
+server
+*.o
+*.bin
+*.zip

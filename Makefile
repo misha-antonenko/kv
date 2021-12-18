@@ -1,6 +1,6 @@
 #CC=g++ -g -O3 -DNDEBUG
-CC=g++ -g -std=c++17 -O3
-PROTOC=protoc
+CC=g++ -g -std=c++17 -O3 -pthread
+PROTOC=./protoc
 
 PROTOBUF=./protobuf-3.18.1/src
 LIB=$(PROTOBUF)/.libs/libprotobuf.a -ldl -pthread

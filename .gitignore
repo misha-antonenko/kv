@@ -5,3 +5,4 @@ server
 *.o
 *.bin
 *.zip
+*.pb.*

@@ -12,12 +12,14 @@
 using namespace std;
 using namespace experimental::filesystem;
 
-TStorage::TStorage(const string &index_file_name)
-    : index_file_name(index_file_name) {
+TStorage::TStorage(const string &base_name)
+    : index_file_name(base_name + ".index"),
+      values_file_name(base_name + ".values") {
 
   load();
-  
+
   index_file = fstream(index_file_name, ios::out | ios::app | ios::binary);
+  values_file = fstream(values_file_name, ios::in | ios::out | ios::app | ios::binary);
 
   cerr << "initialised!" << endl;
 
@@ -75,6 +77,48 @@ bool TStorage::load_from(string file_name) {
   return true;
 }
 
+void TStorage::set_value(const string &key, const string &value) {
+  values_file.seekp(0, ios::end);
+  uint64_t offset = values_file.tellp();
+  set(key, offset);
+  size_t l = value.size();
+  values_file.write(reinterpret_cast<char *>(&l), 8);
+  values_file.write(value.data(), l);
+  values_file.flush();
+  // cerr << "Wrote (" << key << ", " << value << ") into " << offset << endl;
+  assert(values_file.good());
+}
+
+optional<string> TStorage::get_value(const string &key) {
+  optional<uint64_t> offset = get(key);
+  if (not offset)
+    return nullopt;
+  values_file.seekg(*offset);
+  size_t l;
+  values_file.read(reinterpret_cast<char *>(&l), 8);
+  // cerr << "The value length is " << l << endl;
+  char res[l+1];
+  res[l] = 0;
+  values_file.read(res, l);
+  string res_(res);
+  // cerr << "Read (" << key << ", " << res_ << ") from " << *offset << endl;
+  assert(values_file.good());
+  return res_;
+}
+
+// void write_string(fstream f, const string& s) {
+//   f.write(reinterpret_cast<char*>(&s.size()), 8);
+//   f.write(reinterpret_cast<char*>(s.data()), l);
+// }
+
+// string read_string(fstream f) {
+//   size_t l;
+//   f.read(reinterpret_cast<char*>(l), 8);
+//   char s[l];
+//   f.read(s, l);
+//   return string(s);
+// }
+
 void TStorage::load() {
   load_from(index_file_name);
   auto swap_exists = load_from(index_file_name + ".swap");
@@ -118,7 +162,8 @@ void TStorage::dump() {
       assert(index_file.is_open());
       log_size = new_log_size;
     }
-    
-    cerr << "Dumped" << endl;
+
+    // cerr << "Dumped" << endl;
   }
+  
 }

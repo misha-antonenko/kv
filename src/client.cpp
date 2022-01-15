@@ -104,7 +104,8 @@ int main(int argc, const char** argv) {
      */
 
     auto generate_data = [] (int i) {
-        return i * 4;
+        std::string s = "best_value_ever_" + std::to_string(i);
+        return s;
     };
 
     uint64_t request_count = 0;
@@ -117,7 +118,7 @@ int main(int argc, const char** argv) {
             NProto::TPutRequest put_request;
             put_request.set_request_id(request_count++);
             put_request.set_key(key.str());
-            put_request.set_offset(generate_data(i));
+            put_request.set_value(generate_data(i));
 
             std::stringstream message;
             serialize_header(PUT_REQUEST, put_request.ByteSizeLong(), message);
@@ -127,7 +128,7 @@ int main(int argc, const char** argv) {
         }
     };
 
-    std::unordered_map<uint64_t, uint64_t> expected_gets;
+    std::unordered_map<uint64_t, std::string> expected_gets;
 
     auto stage_get = [&] () {
         for (int i = 0; i < max_requests; ++i) {
@@ -176,10 +177,10 @@ int main(int argc, const char** argv) {
         if (it == expected_gets.end()) {
             LOG_ERROR_S("unexpected get request_id "
                 << get_response.request_id());
-        } else if (it->second != get_response.offset()) {
+        } else if (it->second != get_response.value()) {
             LOG_ERROR_S("unexpected data for get request_id "
                 << get_response.request_id()
-                << ", actual " << get_response.offset()
+                << ", actual " << get_response.value()
                 << ", expected " << it->second);
         }
 

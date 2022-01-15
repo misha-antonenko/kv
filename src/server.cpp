@@ -192,7 +192,7 @@ int main(int argc, const char** argv)
      * handler function
      */
 
-    TStorage storage("bin/index");
+    TStorage storage("bin/my_first_base");
     storage.load();
 
     auto handle_get = [&] (const std::string& request) {
@@ -207,9 +207,9 @@ int main(int argc, const char** argv)
 
         NProto::TGetResponse get_response;
         get_response.set_request_id(get_request.request_id());
-        std::optional<uint64_t> v = storage.get(get_request.key());
+        std::optional<std::string> v = storage.get_value(get_request.key());
         if (v) {
-            get_response.set_offset(*v);
+            get_response.set_value(*v);
         }
 
         std::stringstream response;
@@ -229,7 +229,7 @@ int main(int argc, const char** argv)
 
         LOG_DEBUG_S("put_request: " << put_request.ShortDebugString());
 
-        storage.set(put_request.key(), put_request.offset());
+        storage.set_value(put_request.key(), put_request.value());
 
         NProto::TPutResponse put_response;
         put_response.set_request_id(put_request.request_id());

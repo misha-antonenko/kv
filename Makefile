@@ -4,14 +4,13 @@ PROTOC:=./protoc
 
 PROTOBUF:=./protobuf-3.18.1/src
 LIB:=$(PROTOBUF)/.libs/libprotobuf.a -ldl -pthread -lstdc++fs 
-INC:=-I $(PROTOBUF) -I include
+INC:=-I $(PROTOBUF) -I include -Isrc
 COMMON_O:=bin/kv.pb.o bin/log.o bin/protocol.o bin/rpc.o
 
 all: client server
 
 test: client server
-	export VERBOSITY=1
-	./server 4242
+	VERBOSITY=1 ./server 4242
 
 debug: client server
 	export VERBOSITY=1
@@ -30,6 +29,9 @@ bin/%.o: src/%.cpp
 	
 bin/%.pb.o: src/%.pb.cc
 	$(CC) -o $@ -c $< $(INC)
-	
+
+clean_base:
+	rm bin/my_first_base.*
+
 clean:
 	rm bin/*
